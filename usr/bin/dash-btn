@@ -1,0 +1,25 @@
+#!/bin/sh
+
+btntotal=3
+logdir=/tmp/state
+
+log1=$logdir/desk_lamp_btn1
+mac1=00:fc:8b:00:00:00
+
+log2=$logdir/desk_lamp_btn2
+mac2=b4:7c:9c:00:00:00
+
+log3=$logdir/fan_btn
+mac3=78:e1:03:00:00:00
+
+for num in `seq $btntotal`; do
+	eval logfile="\$log${num}"
+	eval macaddr="\$mac${num}"
+	touch $logfile &&
+	inotifyd toggle-smart ${logfile}:c &
+	logread -fe DHCPREQUEST.*${macaddr} |
+	while read press; do
+	[ "$(find $logfile -mmin 0.1)" ] ||
+	echo $press > $logfile
+	done &
+done

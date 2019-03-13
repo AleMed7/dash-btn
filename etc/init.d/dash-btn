@@ -1,0 +1,21 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+reload() {
+	stop
+	sleep 1
+	start
+}
+
+restart() {
+	reload
+}
+
+start() {
+	/usr/bin/dash-btn &
+}
+
+stop() {
+	killall dash-btn inotifyd logread &>/dev/null
+}

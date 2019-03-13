@@ -1,0 +1,39 @@
+#!/bin/sh
+
+if [ "$1" = "c" ]; then
+	device="`basename ${2%_*}`"
+else
+	device=$1
+	switch=$2
+fi
+
+if [ "${#device}" -le 1 ]; then
+	echo "Usage: toggle-smart [DEVICE] (on|off)"
+	exit 1
+fi
+
+statefile=/tmp/state/${device}
+
+if [ -z "`ls -A ${statefile}_btn* 2>/dev/null`" ]; then
+	echo "toggle-smart: error: invalid device"
+	exit 1
+fi
+
+if [ "$switch" ]; then
+	if [ "$switch" = "on" ]; then
+		state=off
+	elif [ "$switch" = "off" ]; then
+		state=on
+	fi
+else
+	state="`cat $statefile 2>/dev/null`"
+fi
+
+url=http://maker.ifttt.com/trigger
+key=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+if [ "$state" = "on" ]; then
+	curl -f --connect-timeout 5 -m 5 -X POST ${url}/${device}_off/with/key/${key} &>/dev/null && echo off > $statefile
+else
+	curl -f --connect-timeout 5 -m 5 -X POST ${url}/${device}_on/with/key/${key} &>/dev/null && echo on > $statefile
+fi
